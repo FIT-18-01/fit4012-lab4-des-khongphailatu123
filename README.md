@@ -57,33 +57,89 @@ cmake --build build
 
 ## 3. Input / Đầu vào
 
-TODO_STUDENT: Mô tả rõ đầu vào của chương trình sau khi em hoàn thiện bài lab.
+Chương trình nhận đầu vào từ **stdin (bàn phím)** theo các mode sau:
 
-Gợi ý nên nêu:
-- plaintext đang được nhập như thế nào
-- key đang được nhập như thế nào
-- chương trình nhận 1 block hay nhiều block
-- định dạng dữ liệu là chuỗi bit, chuỗi ký tự hay file
+### Mode 1: DES Encrypt
+```
+Nhập mode: 1
+Nhập plaintext (64-bit binary): 0001001000110100010101100111100010011010101111001101111011110001
+Nhập key (64-bit binary):        0001001100110100010101110111100110011011101111001101111111110001
+```
+
+### Mode 2: DES Decrypt
+```
+Nhập mode: 2
+Nhập ciphertext (64-bit binary): [ciphertext từ encrypt]
+Nhập key (64-bit binary):         0001001100110100010101110111100110011011101111001101111111110001
+```
+
+**Định dạng dữ liệu:**
+- Plaintext/Ciphertext: Chuỗi **64 bit** (hoặc bội số 64 nếu multi-block)
+- Key: Chuỗi **64 bit** nhị phân
+- Nếu plaintext dài hơn 64 bit: chia thành các block 64 bit, block cuối cùng được **zero padding**
+- Chương trình hỗ trợ **1 block hoặc nhiều blocks**
 
 ## 4. Output / Đầu ra
 
-TODO_STUDENT: Mô tả rõ đầu ra của chương trình.
+### DES Encrypt Output
+```
+Key Schedule:
+Key 1:  [48-bit round key]
+Key 2:  [48-bit round key]
+...
+Key 16: [48-bit round key]
 
-Gợi ý nên nêu:
-- ciphertext hiển thị ra sao
-- có in round keys hay không
-- có hỗ trợ giải mã hay không
-- với TripleDES thì đầu ra gồm những gì
+Plaintext:  0001001000110100010101100111100010011010101111001101111011110001
+Ciphertext: [64-bit encrypted output]
+```
+
+### DES Decrypt Output
+```
+Ciphertext: [64-bit input]
+Decrypted:  [64-bit plaintext output]
+Match:      YES (nếu decrypt chính xác)
+```
+
+**Chi tiết:**
+- In ra 16 round keys (tuỳ chọn)
+- In ra plaintext đầu vào
+- In ra **ciphertext cuối cùng** dưới dạng chuỗi 64-bit nhị phân
+- Hỗ trợ **decryption** với verifying round-trip
+- Hỗ trợ **multi-block** với kết quả cuối cùng
 
 ## 5. Padding đang dùng
 
-TODO_STUDENT: Giải thích cơ chế padding em dùng.
+### Zero Padding Scheme
 
-Gợi ý:
-- nếu plaintext dài hơn 64 bit thì chia block như thế nào
-- nếu thiếu bit thì pad bằng `0` ra sao
-- hạn chế của zero padding là gì
-- vì sao cách này chỉ phù hợp cho bài học nhập môn, không phải thiết kế an toàn hoàn chỉnh trong thực tế
+Khi plaintext dài hơn 64 bit:
+1. Chia plaintext thành các block 64-bit
+2. Block cuối nếu thiếu bit: thêm zeros bên phải cho đủ 64 bit
+   ```
+   Ví dụ: plaintext = 128 bit
+   Block 1: [64 bit]  → encrypt
+   Block 2: [64 bit]  → encrypt
+   ```
+
+3. Nếu plaintext = 80 bit:
+   ```
+   Block 1: [64 bit]         → encrypt
+   Block 2: [16 bit + 48 bit zeros] → encrypt
+   ```
+
+### Hạn chế của Zero Padding
+
+| Hạn chế | Mô tả |
+|---------|-------|
+| **Ambiguity** | Nếu plaintext kết thúc bằng zeros, không biết đâu là data, đâu là padding |
+| **Weak Detection** | Không thể phát hiện padding bị chỉnh sửa hoặc loại bỏ |
+| **Not Standard** | PKCS#7, PKCS#5 an toàn hơn trong thực tế |
+| **Learning Only** | Chỉ phù hợp cho bài học nhập môn, không dùng trong sản xuất |
+
+### Lý do dùng Zero Padding ở đây
+
+- Đơn giản dễ hiểu cho sinh viên
+- Tập trung vào logic DES, không phức tạp về padding
+- Trong thực tế, các mode như CBC, CTR tự xử lý padding
 
 ## 6. Tests bắt buộc
 

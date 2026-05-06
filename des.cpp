@@ -446,33 +446,82 @@ class DESDecrypt {
 
 // Main function
 int main() {
-    // Example plaintext (64 bits)
-    string plaintext = "0001001000110100010101100111100010011010101111001101111011110001";
+    int mode;
+    string plaintext, key;
     
-    // Example key (64 bits)
-    string key = "0001001100110100010101110111100110011011101111001101111111110001";
+    cout << "====== DES Encryption/Decryption Program ======" << endl;
+    cout << "Choose mode:" << endl;
+    cout << "1 = DES encrypt" << endl;
+    cout << "2 = DES decrypt" << endl;
+    cout << "Nhap mode (1 or 2): ";
+    cin >> mode;
     
-    cout << "====== DES Encryption/Decryption Demo ======" << endl;
-    cout << "Plaintext:  " << plaintext << endl;
-    cout << "Key:        " << key << endl << endl;
-    
-    // Generate round keys
-    KeyGenerator keygen(key);
-    keygen.generateRoundKeys(); 
-    
-    vector<string> roundKeys = keygen.getRoundKeys();
-    cout << endl;
-    
-    // Create DES object and encrypt
-    DES des(roundKeys);
-    string ciphertext = des.encrypt(plaintext);
-    cout << "Ciphertext: " << ciphertext << endl << endl;
-    
-    // Create DES Decrypt object and decrypt
-    DESDecrypt des_decrypt(roundKeys);
-    string decrypted = des_decrypt.decrypt(ciphertext);
-    cout << "Decrypted:  " << decrypted << endl;
-    cout << "Match: " << (decrypted == plaintext ? "YES" : "NO") << endl;
+    if (mode == 1) {
+        // DES Encrypt Mode
+        cout << "Nhap plaintext (64-bit binary): ";
+        cin >> plaintext;
+        cout << "Nhap key (64-bit binary): ";
+        cin >> key;
+        
+        // Ensure 64-bit input
+        if (plaintext.length() < 64) {
+            plaintext = add_zero_padding(plaintext, 64);
+        }
+        if (key.length() < 64) {
+            key = add_zero_padding(key, 64);
+        }
+        
+        cout << "\n====== Encrypting ======" << endl;
+        cout << "Plaintext:  " << plaintext.substr(0, 64) << endl;
+        cout << "Key:        " << key.substr(0, 64) << endl << endl;
+        
+        // Generate round keys
+        KeyGenerator keygen(key);
+        keygen.generateRoundKeys(); 
+        
+        vector<string> roundKeys = keygen.getRoundKeys();
+        cout << endl;
+        
+        // Create DES object and encrypt
+        DES des(roundKeys);
+        string ciphertext = des.encrypt(plaintext.substr(0, 64));
+        cout << "Ciphertext: " << ciphertext << endl;
+        
+    } else if (mode == 2) {
+        // DES Decrypt Mode
+        cout << "Nhap ciphertext (64-bit binary): ";
+        cin >> plaintext;
+        cout << "Nhap key (64-bit binary): ";
+        cin >> key;
+        
+        // Ensure 64-bit input
+        if (plaintext.length() < 64) {
+            plaintext = add_zero_padding(plaintext, 64);
+        }
+        if (key.length() < 64) {
+            key = add_zero_padding(key, 64);
+        }
+        
+        cout << "\n====== Decrypting ======" << endl;
+        cout << "Ciphertext: " << plaintext.substr(0, 64) << endl;
+        cout << "Key:        " << key.substr(0, 64) << endl << endl;
+        
+        // Generate round keys
+        KeyGenerator keygen(key);
+        keygen.generateRoundKeys(); 
+        
+        vector<string> roundKeys = keygen.getRoundKeys();
+        cout << endl;
+        
+        // Create DES Decrypt object and decrypt
+        DESDecrypt des_decrypt(roundKeys);
+        string decrypted = des_decrypt.decrypt(plaintext.substr(0, 64));
+        cout << "Decrypted:  " << decrypted << endl;
+        
+    } else {
+        cout << "Invalid mode!" << endl;
+        return 1;
+    }
     
     return 0;
 }

@@ -453,7 +453,9 @@ int main() {
     cout << "Choose mode:" << endl;
     cout << "1 = DES encrypt" << endl;
     cout << "2 = DES decrypt" << endl;
-    cout << "Nhap mode (1 or 2): ";
+    cout << "3 = TripleDES encrypt (EDE)" << endl;
+    cout << "4 = TripleDES decrypt (DED)" << endl;
+    cout << "Nhap mode (1-4): ";
     cin >> mode;
     
     if (mode == 1) {
@@ -529,6 +531,114 @@ int main() {
         }
         
         cout << "Decrypted:  " << decrypted << endl;
+        
+    } else if (mode == 3) {
+        // TripleDES Encrypt Mode (EDE)
+        string k1, k2, k3;
+        cout << "Nhap plaintext (64-bit binary): ";
+        cin >> plaintext;
+        cout << "Nhap key K1 (64-bit binary): ";
+        cin >> k1;
+        cout << "Nhap key K2 (64-bit binary): ";
+        cin >> k2;
+        cout << "Nhap key K3 (64-bit binary): ";
+        cin >> k3;
+        
+        // Ensure keys are 64-bit
+        if (k1.length() < 64) k1 = add_zero_padding(k1, 64);
+        if (k2.length() < 64) k2 = add_zero_padding(k2, 64);
+        if (k3.length() < 64) k3 = add_zero_padding(k3, 64);
+        
+        // Apply zero padding to plaintext
+        plaintext = add_zero_padding(plaintext, 64);
+        
+        cout << "\n====== TripleDES Encrypting (EDE) ======" << endl;
+        cout << "Plaintext:  " << plaintext << endl << endl;
+        
+        // Generate round keys for all 3 keys
+        KeyGenerator keygen1(k1), keygen2(k2), keygen3(k3);
+        keygen1.generateRoundKeys();
+        keygen2.generateRoundKeys();
+        keygen3.generateRoundKeys();
+        
+        vector<string> roundKeys1 = keygen1.getRoundKeys();
+        vector<string> roundKeys2 = keygen2.getRoundKeys();
+        vector<string> roundKeys3 = keygen3.getRoundKeys();
+        
+        // Create DES objects
+        DES des1(roundKeys1), des3(roundKeys3);
+        DESDecrypt des2(roundKeys2);
+        
+        // TripleDES EDE: E(K3, D(K2, E(K1, plaintext)))
+        vector<string> blocks = split_into_blocks(plaintext, 64);
+        string ciphertext = "";
+        
+        for (const string& block : blocks) {
+            // E(K1)
+            string temp1 = des1.encrypt(block);
+            // D(K2)
+            string temp2 = des2.decrypt(temp1);
+            // E(K3)
+            string result = des3.encrypt(temp2);
+            ciphertext += result;
+        }
+        
+        cout << "Ciphertext: " << ciphertext << endl;
+        
+    } else if (mode == 4) {
+        // TripleDES Decrypt Mode (DED)
+        string k1, k2, k3;
+        cout << "Nhap ciphertext (64-bit binary): ";
+        cin >> plaintext;
+        cout << "Nhap key K1 (64-bit binary): ";
+        cin >> k1;
+        cout << "Nhap key K2 (64-bit binary): ";
+        cin >> k2;
+        cout << "Nhap key K3 (64-bit binary): ";
+        cin >> k3;
+        
+        // Ensure keys are 64-bit
+        if (k1.length() < 64) k1 = add_zero_padding(k1, 64);
+        if (k2.length() < 64) k2 = add_zero_padding(k2, 64);
+        if (k3.length() < 64) k3 = add_zero_padding(k3, 64);
+        
+        // Ensure ciphertext is 64-bit multiple
+        if (plaintext.length() % 64 != 0) {
+            plaintext = add_zero_padding(plaintext, 64);
+        }
+        
+        cout << "\n====== TripleDES Decrypting (DED) ======" << endl;
+        cout << "Ciphertext: " << plaintext << endl << endl;
+        
+        // Generate round keys for all 3 keys
+        KeyGenerator keygen1(k1), keygen2(k2), keygen3(k3);
+        keygen1.generateRoundKeys();
+        keygen2.generateRoundKeys();
+        keygen3.generateRoundKeys();
+        
+        vector<string> roundKeys1 = keygen1.getRoundKeys();
+        vector<string> roundKeys2 = keygen2.getRoundKeys();
+        vector<string> roundKeys3 = keygen3.getRoundKeys();
+        
+        // Create DES objects
+        DESDecrypt des1(roundKeys1), des3(roundKeys3);
+        DES des2(roundKeys2);
+        
+        // TripleDES DED: D(K1, E(K2, D(K3, ciphertext)))
+        vector<string> blocks = split_into_blocks(plaintext, 64);
+        string decrypted = "";
+        
+        for (const string& block : blocks) {
+            // D(K3)
+            string temp1 = des3.decrypt(block);
+            // E(K2)
+            string temp2 = des2.encrypt(temp1);
+            // D(K1)
+            string result = des1.decrypt(temp2);
+            decrypted += result;
+        }
+        
+        cout << "Plaintext:  " << decrypted << endl;
         
     } else {
         cout << "Invalid mode!" << endl;

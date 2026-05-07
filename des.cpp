@@ -463,16 +463,16 @@ int main() {
         cout << "Nhap key (64-bit binary): ";
         cin >> key;
         
-        // Ensure 64-bit input
-        if (plaintext.length() < 64) {
-            plaintext = add_zero_padding(plaintext, 64);
-        }
+        // Ensure key is 64-bit
         if (key.length() < 64) {
             key = add_zero_padding(key, 64);
         }
         
+        // Apply zero padding to plaintext to make it multiple of 64
+        plaintext = add_zero_padding(plaintext, 64);
+        
         cout << "\n====== Encrypting ======" << endl;
-        cout << "Plaintext:  " << plaintext.substr(0, 64) << endl;
+        cout << "Plaintext:  " << plaintext << endl;
         cout << "Key:        " << key.substr(0, 64) << endl << endl;
         
         // Generate round keys
@@ -482,9 +482,15 @@ int main() {
         vector<string> roundKeys = keygen.getRoundKeys();
         cout << endl;
         
-        // Create DES object and encrypt
+        // Create DES object and encrypt all blocks
         DES des(roundKeys);
-        string ciphertext = des.encrypt(plaintext.substr(0, 64));
+        vector<string> blocks = split_into_blocks(plaintext, 64);
+        string ciphertext = "";
+        
+        for (const string& block : blocks) {
+            ciphertext += des.encrypt(block);
+        }
+        
         cout << "Ciphertext: " << ciphertext << endl;
         
     } else if (mode == 2) {
@@ -494,8 +500,8 @@ int main() {
         cout << "Nhap key (64-bit binary): ";
         cin >> key;
         
-        // Ensure 64-bit input
-        if (plaintext.length() < 64) {
+        // Ensure both are 64-bit multiples
+        if (plaintext.length() % 64 != 0) {
             plaintext = add_zero_padding(plaintext, 64);
         }
         if (key.length() < 64) {
@@ -503,7 +509,7 @@ int main() {
         }
         
         cout << "\n====== Decrypting ======" << endl;
-        cout << "Ciphertext: " << plaintext.substr(0, 64) << endl;
+        cout << "Ciphertext: " << plaintext << endl;
         cout << "Key:        " << key.substr(0, 64) << endl << endl;
         
         // Generate round keys
@@ -513,9 +519,15 @@ int main() {
         vector<string> roundKeys = keygen.getRoundKeys();
         cout << endl;
         
-        // Create DES Decrypt object and decrypt
+        // Create DES Decrypt object and decrypt all blocks
         DESDecrypt des_decrypt(roundKeys);
-        string decrypted = des_decrypt.decrypt(plaintext.substr(0, 64));
+        vector<string> blocks = split_into_blocks(plaintext, 64);
+        string decrypted = "";
+        
+        for (const string& block : blocks) {
+            decrypted += des_decrypt.decrypt(block);
+        }
+        
         cout << "Decrypted:  " << decrypted << endl;
         
     } else {
